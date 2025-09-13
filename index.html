@@ -3207,31 +3207,16 @@ function bringToFront(el) {
       author: 'root', 
       mtime: pageLoadTime, 
       children: {
-        User: { 
+        user: { 
           type: 'dir', 
-          author: 'root', 
+          author: 'user', 
           mtime: pageLoadTime, 
           children: {
-            user: { 
-              type: 'dir', 
+            'secrets.txt': { 
+              type: 'file', 
+              content: `Hello! I see you've found this file. Here are some of my favorite commands that are supported by this website. 'keyboard' - to see a cool on-screen keyboard that mirrors everything you type; 'automata create --type=Moss' - I like all the cellular automata, but the Moss is my favorite; 'theme --webpage' - to toggle light/dark mode (you can also change the color of the terminal using a similar command!); 'goto <webpage>' - to go to any webpage on this website without touching your mouse; vim <filename> - to open a simple vim-like text editor where you can create and edit your own files!`, 
               author: 'user', 
-              mtime: pageLoadTime, 
-              children: {
-                'secrets.txt': { 
-                  type: 'file', 
-                  content: `Hello! I see you've found this file. Below are some of my favorite commands that are supported by this website.
-
-'keyboard' - to see a cool on-screen keyboard that mirrors everything you type
-
-'automata create --type=Moss' - I like all the cellular automata, but the Moss is my favorite
-
-'theme --webpage' - to toggle light/dark mode (you can also change the color of the terminal using a similar command!)
-
-'goto <webpage>' - to go to any webpage on this website without touching your mouse`, 
-                  author: 'user', 
-                  mtime: pageLoadTime
-                }
-              }
+              mtime: pageLoadTime
             }
           }
         }
@@ -3239,7 +3224,7 @@ function bringToFront(el) {
     };
     const history = [];
     let historyIndex = 0;
-    let cwd = ['User', 'user']; // Start in User/user directory where secrets.txt is located
+    let cwd = ['user']; // Start in user directory where secrets.txt is located
     const terminal = document.getElementById('terminal');
 
     // Global automaton instances management
