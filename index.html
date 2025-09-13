@@ -1089,8 +1089,10 @@
       pointer-events: none;
       z-index: 800;
       cursor: default;
-      transition: all 0.2s ease;
+      transition: transform 0.2s ease;
       border-radius: 1px;
+      will-change: transform, opacity; /* GPU optimization for animations */
+      backface-visibility: hidden; /* Prevent flickering during transforms */
     }
     
     .ca-pixel.blue {
@@ -3089,6 +3091,76 @@ function bringToFront(el) {
   el.style.zIndex = ++zCounter;
 }
     const pageLoadTime = new Date();
+    
+    // DOM Element Cache for Performance Optimization
+    const domCache = {
+      terminal: null,
+      terminalWindow: null,
+      helpModal: null,
+      vimEditor: null,
+      keyboardPanel: null,
+      
+      get(id) {
+        if (!this[id]) {
+          this[id] = document.getElementById(id === 'terminal' ? 'terminal' : 
+                                          id === 'terminalWindow' ? 'terminal-window' :
+                                          id === 'helpModal' ? 'help-modal' :
+                                          id === 'vimEditor' ? 'vim-editor' :
+                                          id === 'keyboardPanel' ? 'keyboard-panel' : id);
+        }
+        return this[id];
+      }
+    };
+    
+    // Performance utility functions
+    function throttle(func, delay) {
+      let lastCall = 0;
+      return function(...args) {
+        const now = Date.now();
+        if (now - lastCall >= delay) {
+          lastCall = now;
+          return func.apply(this, args);
+        }
+      };
+    }
+    
+    function debounce(func, delay) {
+      let timeoutId;
+      return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+    
+    // Simple performance monitoring
+    const performanceMonitor = {
+      frameCount: 0,
+      lastFpsUpdate: Date.now(),
+      fps: 0,
+      debugMode: false, // Set to true for development debugging
+      
+      log(...args) {
+        if (this.debugMode) {
+          console.log(...args);
+        }
+      },
+      
+      updateFPS() {
+        this.frameCount++;
+        const now = Date.now();
+        if (now - this.lastFpsUpdate >= 1000) {
+          this.fps = this.frameCount;
+          this.frameCount = 0;
+          this.lastFpsUpdate = now;
+          
+          // Log performance warning if FPS drops below 20
+          if (this.fps < 20 && automatonInstances.length > 0) {
+            console.warn(`Performance warning: ${this.fps} FPS with ${automatonInstances.length} automata`);
+          }
+        }
+      }
+    };
+    
     const commands = ['welcome','help','clear','exit','ls','cd','cat','mkdir','pwd','theme','keyboard','mv','rmdir','rm','touch','date','grep','vim','download','automata','goto'];
     const fs = {
       type: 'dir', author: 'root', mtime: pageLoadTime, children: {
@@ -5629,10 +5701,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Theme toggle functionality
   const themeToggleBtn = document.querySelector('.theme-toggle-btn');
   const body = document.body;
-  let isDarkMode = true; // Start in dark mode
+  let isDarkMode = false; // Start in light mode (website starts with light-mode class)
   
-  // Initialize tooltip for dark mode (shows "Light Mode" to indicate next state)
-  themeToggleBtn.setAttribute('data-tip', 'Light Mode');
+  // Initialize tooltip for light mode (shows "Dark Mode" to indicate next state)
+  themeToggleBtn.setAttribute('data-tip', 'Dark Mode');
   
   themeToggleBtn.addEventListener('click', () => {
     // Normal theme toggle behavior
@@ -6811,8 +6883,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       this.lastFrameTime = now;
       
-      // Clear previous frame
-      Object.values(this.pixels).forEach(pixel => pixel.remove());
+      // Update performance monitor
+      performanceMonitor.updateFPS();
+      
+      // Clear previous frame - properly clean up event listeners
+      Object.values(this.pixels).forEach(pixel => {
+        if (pixel && pixel.parentNode) {
+          pixel.removeEventListener('click', pixel._clickHandler);
+          pixel.removeEventListener('mouseenter', pixel._mouseEnterHandler);
+          pixel.removeEventListener('mouseleave', pixel._mouseLeaveHandler);
+          pixel.remove();
+        }
+      });
       this.pixels = {};
       
       // Expand bloom radius
@@ -7555,7 +7637,32 @@ document.addEventListener('DOMContentLoaded', () => {
     return newInstance;
   }
 
+  // Performance optimization: Pause automata when page is not visible
+  let isPageVisible = true;
+  document.addEventListener('visibilitychange', () => {
+    isPageVisible = !document.hidden;
+    automatonInstances.forEach(instance => {
+      if (instance.isActive) {
+        if (isPageVisible) {
+          // Resume animation if page becomes visible
+          if (!instance.animationId && instance.animate) {
+            instance.animate();
+          }
+        } else {
+          // Pause animation when page is hidden
+          if (instance.animationId) {
+            cancelAnimationFrame(instance.animationId);
+            instance.animationId = null;
+          }
+        }
+      }
+    });
+  });
+
   function updateAutomatonPopups() {
+    // Skip update if page is not visible for performance
+    if (!isPageVisible) return;
+    
     automatonInstances.forEach(instance => {
       if (instance.idPopup && instance.idPopup.parentNode) {
         const coords = getAutomatonCoordinates(instance);
@@ -7565,8 +7672,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Update popup positions periodically
-  setInterval(updateAutomatonPopups, 100);
+  // Update popup positions periodically - reduced frequency for better performance
+  setInterval(updateAutomatonPopups, 200);
 
   function renameAutomaton(id) {
     console.log('renameAutomaton called with id:', id);
@@ -9005,7 +9112,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <!-- Floating button group -->
   <div class="floating-button-group">
     <!-- Theme toggle button -->
-    <button class="floating-btn theme-toggle-btn" data-tip="Light Mode" aria-label="Toggle Theme">
+    <button class="floating-btn theme-toggle-btn light-mode" data-tip="Dark Mode" aria-label="Toggle Theme">
       <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
