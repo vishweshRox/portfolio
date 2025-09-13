@@ -3743,6 +3743,35 @@ You can also interact with the website using some custom commands. To close the 
         print('exit: unexpected argument: ' + arg.trim());
         break;
       }
+      
+      // Close all terminal-related windows first
+      // Close vim editor if open
+      const vimEditor = document.getElementById('vim-editor');
+      if (vimEditor && vimEditor.style.display !== 'none') {
+        // Auto-save vim file before closing
+        if (typeof saveVimFile === 'function') saveVimFile();
+        // Close vim editor
+        if (typeof closeVimEditor === 'function') closeVimEditor();
+      }
+      
+      // Close help modal
+      const helpModal = document.getElementById('help-modal');
+      if (helpModal && helpModal.style.display === 'block') {
+        helpModal.style.display = 'none';
+      }
+      
+      // Close keyboard panel
+      const keyboardPanel = document.getElementById('keyboard-panel');
+      if (keyboardPanel && !keyboardPanel.classList.contains('hidden')) {
+        keyboardPanel.classList.add('hidden');
+      }
+      
+      // Clear any vim message overlays
+      const messageOverlay = document.querySelector('.vim-message-overlay');
+      if (messageOverlay) {
+        messageOverlay.classList.remove('show');
+      }
+      
       // Close the terminal window
       const terminalWindow = document.getElementById('terminal-window');
       terminalWindow.classList.remove('show');
