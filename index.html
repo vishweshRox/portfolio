@@ -2319,7 +2319,11 @@
     }
     
     .guidance-pulse {
-      animation: guidancePulse 1s ease-in-out 8;
+      animation-name: guidancePulse;
+      animation-duration: 1s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: 8;
+      animation-fill-mode: forwards;
       border-radius: 0;
       padding: 0;
       transition: all 0.3s ease;
@@ -2327,7 +2331,11 @@
     
     /* Light mode pulse animation */
     body.light-mode .guidance-pulse {
-      animation: guidancePulseDark 1s ease-in-out 8;
+      animation-name: guidancePulseDark;
+      animation-duration: 1s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: 8;
+      animation-fill-mode: forwards;
     }
     
     @keyframes guidancePulseDark {
@@ -2584,7 +2592,7 @@
   <div class="website-content-container">
     <div class="website-page active" id="home-page">
       <p>I am a senior at <a href="https://www.umass.edu/" target="_blank" rel="noopener noreferrer" class="website-link">UMass Amherst</a> studying Mathematics and Computer Science. I am currently advised by <a href="https://www.cics.umass.edu/about/directory/mordecai-golin" target="_blank" rel="noopener noreferrer" class="website-link">Dr. Mordecai Golin</a>.</p>
-      <p>Feel free to explore the <a href="#" class="website-link terminal-link">terminal</a> and launch <a href="#" class="website-link automata-link">cellular automata</a> featured on this website, or learn more about me in the other webpages linked above.</p>
+      <p>Feel free to explore the <a href="#" class="website-link terminal-link">terminal</a> (and see how it can be used to control the website), or launch playful <a href="#" class="website-link automata-link">cellular automata</a> and watch them grow. You can learn more about me and some of my work in the other webpages linked above.</p>
       <p>For better or worse, this website is a single .html file. The source code for this website can be found <a href="https://github.com/vishweshRox/terminal-emulator-website" target="_blank" rel="noopener noreferrer" class="website-link">here</a>.</p>
     </div>
     
@@ -3099,10 +3107,7 @@
         <div class="resize-handle"></div>
         <h4>Explorer</h4>
         <div class="vim-file-tree">
-          <div class="file-item">📁 home</div>
-          <div class="file-item">📁 etc</div>
-          <div class="file-item">📄 about.txt</div>
-          <div class="file-item">📄 secret.msg</div>
+          <!-- Empty file tree - user can create their own files -->
         </div>
       </div>
       <div class="vim-main">
@@ -3198,20 +3203,43 @@ function bringToFront(el) {
     
     const commands = ['welcome','help','clear','exit','ls','cd','cat','mkdir','pwd','theme','keyboard','mv','rmdir','rm','touch','date','grep','vim','download','automata','goto'];
     const fs = {
-      type: 'dir', author: 'root', mtime: pageLoadTime, children: {
-        home: { type: 'dir', author: 'root', mtime: pageLoadTime, children: {
-          user: { type: 'dir', children: {
-            'about.txt': { type: 'file', content: 'Welcome! Type "help" to see commands.', author: 'user', mtime: pageLoadTime},
-            'secret.msg': { type: 'file', action: showSecret, mtime: pageLoadTime, author: 'user'}
-          }, author: 'root', mtime: pageLoadTime}
+      type: 'dir', 
+      author: 'root', 
+      mtime: pageLoadTime, 
+      children: {
+        User: { 
+          type: 'dir', 
+          author: 'root', 
+          mtime: pageLoadTime, 
+          children: {
+            user: { 
+              type: 'dir', 
+              author: 'user', 
+              mtime: pageLoadTime, 
+              children: {
+                'secrets.txt': { 
+                  type: 'file', 
+                  content: `Hello! I see you've found this file. Below are some of my favorite commands that are supported by this website.
+
+'keyboard' - to see a cool on-screen keyboard that mirrors everything you type
+
+'automata create --type=Moss' - I like all the cellular automata, but the Moss is my favorite
+
+'theme --webpage' - to toggle light/dark mode (you can also change the color of the terminal using a similar command!)
+
+'goto <webpage>' - to go to any webpage on this website without touching your mouse`, 
+                  author: 'user', 
+                  mtime: pageLoadTime
+                }
+              }
+            }
+          }
         }
-      },
-        etc: { type: 'dir', children: {}, author: 'root', mtime: pageLoadTime }
       }
-    , author: 'root', mtime: pageLoadTime};
+    };
     const history = [];
     let historyIndex = 0;
-    let cwd = ['home', 'user'];
+    let cwd = ['User', 'user']; // Start in User/user directory where secrets.txt is located
     const terminal = document.getElementById('terminal');
 
     // Global automaton instances management
@@ -3248,8 +3276,6 @@ function bringToFront(el) {
       line.textContent = text;
       terminal.appendChild(line);
     }
-
-    function showSecret() { print('🔥 Secret Unlocked! 🔥'); }
 
 function formatDate(dt) {
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -5705,10 +5731,10 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('hasShownTerminalPulse', 'true');
         this.hasShownTerminalPulse = true;
         
-        // Remove animation after it completes
+        // Remove animation after it completes (8 pulses × 1 second each)
         setTimeout(() => {
           terminalLink.classList.remove('guidance-pulse');
-        }, 3000);
+        }, 8000);
       }
     },
     
@@ -5721,11 +5747,11 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('hasShownAutomataPulse', 'true');
         this.hasShownAutomataPulse = true;
         
-        // Remove animation after it completes
+        // Remove animation after it completes (8 pulses × 1 second each)
         setTimeout(() => {
           automataLink.classList.remove('guidance-pulse');
           console.log('Automata pulse animation completed');
-        }, 3000);
+        }, 8000);
       } else {
         console.log('Cannot show automata pulse - link not found or not on home page');
       }
