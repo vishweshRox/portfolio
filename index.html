@@ -2306,6 +2306,41 @@
       position: relative;
     }
 
+    /* Pulse animation for first-time user guidance */
+    @keyframes guidancePulse {
+      0%, 100% { 
+        color: white;
+        background: transparent;
+      }
+      50% { 
+        color: #191919;
+        background: white;
+      }
+    }
+    
+    .guidance-pulse {
+      animation: guidancePulse 1s ease-in-out 8;
+      border-radius: 0;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+    
+    /* Light mode pulse animation */
+    body.light-mode .guidance-pulse {
+      animation: guidancePulseDark 1s ease-in-out 8;
+    }
+    
+    @keyframes guidancePulseDark {
+      0%, 100% { 
+        color: #191919;
+        background: transparent;
+      }
+      50% { 
+        color: white;
+        background: #191919;
+      }
+    }
+
     /* Industry Experience Styles */
     .industry-experience-container {
       display: flex;
@@ -5457,6 +5492,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (terminalLink) {
       terminalLink.addEventListener('click', (e) => {
         e.preventDefault();
+        
+        // Stop pulsing immediately when clicked
+        terminalLink.classList.remove('guidance-pulse');
+        
         // Animate terminal button
         const terminalBtn = document.querySelector('.terminal-toggle-btn');
         if (terminalBtn) {
@@ -5534,6 +5573,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (automataLink) {
       automataLink.addEventListener('click', (e) => {
         e.preventDefault();
+        
+        // Stop pulsing immediately when clicked
+        automataLink.classList.remove('guidance-pulse');
+        
         // Animate automata button
         const automataBtn = document.querySelector('.cellular-automaton-btn');
         if (automataBtn) {
@@ -5600,6 +5643,215 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Set initial home-page class since home page is active by default
   document.body.classList.add('home-page');
+
+  // User Guidance System for First-Time Visitors
+  const userGuidance = {
+    // Check localStorage for user interaction history
+    hasUsedTerminal: localStorage.getItem('hasUsedTerminal') === 'true',
+    hasUsedAutomata: localStorage.getItem('hasUsedAutomata') === 'true',
+    hasShownTerminalPulse: localStorage.getItem('hasShownTerminalPulse') === 'true',
+    hasShownAutomataPulse: localStorage.getItem('hasShownAutomataPulse') === 'true',
+    
+    init() {
+      // For testing: Uncomment the next line to reset all guidance state
+      this.resetGuidanceState();
+      
+      // Only show guidance on home page
+      if (document.getElementById('home-page').classList.contains('active')) {
+        this.checkForTerminalGuidance();
+      }
+      
+      // Listen for page navigation to trigger guidance
+      this.setupNavigationListeners();
+      this.setupUsageTracking();
+    },
+    
+    // Helper method to reset guidance for testing
+    resetGuidanceState() {
+      localStorage.removeItem('hasUsedTerminal');
+      localStorage.removeItem('hasUsedAutomata');
+      localStorage.removeItem('hasShownTerminalPulse');
+      localStorage.removeItem('hasShownAutomataPulse');
+      this.hasUsedTerminal = false;
+      this.hasUsedAutomata = false;
+      this.hasShownTerminalPulse = false;
+      this.hasShownAutomataPulse = false;
+      console.log('Guidance state reset for testing');
+    },
+    
+    checkForTerminalGuidance() {
+      console.log('Guidance check:', {
+        hasShownTerminalPulse: this.hasShownTerminalPulse,
+        hasUsedTerminal: this.hasUsedTerminal,
+        hasUsedAutomata: this.hasUsedAutomata,
+        hasShownAutomataPulse: this.hasShownAutomataPulse,
+        isOnHomePage: document.getElementById('home-page').classList.contains('active')
+      });
+      
+      // Show terminal pulse if user hasn't seen it and hasn't used terminal
+      if (!this.hasShownTerminalPulse && !this.hasUsedTerminal) {
+        setTimeout(() => this.showTerminalPulse(), 1000); // Wait 1 second after page load
+      } else if (this.hasUsedTerminal && !this.hasUsedAutomata && !this.hasShownAutomataPulse) {
+        // Show automata pulse if terminal has been used but not automata
+        console.log('Triggering automata pulse...');
+        setTimeout(() => this.showAutomataPulse(), 1000);
+      }
+    },
+    
+    showTerminalPulse() {
+      const terminalLink = document.querySelector('.terminal-link');
+      if (terminalLink && document.getElementById('home-page').classList.contains('active')) {
+        terminalLink.classList.add('guidance-pulse');
+        localStorage.setItem('hasShownTerminalPulse', 'true');
+        this.hasShownTerminalPulse = true;
+        
+        // Remove animation after it completes
+        setTimeout(() => {
+          terminalLink.classList.remove('guidance-pulse');
+        }, 3000);
+      }
+    },
+    
+    showAutomataPulse() {
+      console.log('showAutomataPulse called');
+      const automataLink = document.querySelector('.automata-link');
+      if (automataLink && document.getElementById('home-page').classList.contains('active')) {
+        console.log('Adding automata pulse animation');
+        automataLink.classList.add('guidance-pulse');
+        localStorage.setItem('hasShownAutomataPulse', 'true');
+        this.hasShownAutomataPulse = true;
+        
+        // Remove animation after it completes
+        setTimeout(() => {
+          automataLink.classList.remove('guidance-pulse');
+          console.log('Automata pulse animation completed');
+        }, 3000);
+      } else {
+        console.log('Cannot show automata pulse - link not found or not on home page');
+      }
+    },
+    
+    setupNavigationListeners() {
+      // Listen for navigation back to home page by monitoring page changes
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const target = mutation.target;
+            if (target.id === 'home-page' && target.classList.contains('active')) {
+              setTimeout(() => this.checkForTerminalGuidance(), 500);
+            }
+          }
+        });
+      });
+      
+      // Observe changes to page elements
+      const pages = document.querySelectorAll('.website-page');
+      pages.forEach(page => {
+        observer.observe(page, { attributes: true });
+      });
+    },
+    
+    setupUsageTracking() {
+      // Track terminal usage by monitoring the terminal toggle button
+      const terminalToggleBtn = document.querySelector('.terminal-toggle-btn');
+      if (terminalToggleBtn) {
+        terminalToggleBtn.addEventListener('click', () => {
+          console.log('Terminal toggle clicked, hasUsedTerminal before:', this.hasUsedTerminal);
+          if (!this.hasUsedTerminal) {
+            localStorage.setItem('hasUsedTerminal', 'true');
+            this.hasUsedTerminal = true;
+            console.log('Marked terminal as used');
+          }
+        });
+      }
+      
+      // Monitor terminal window visibility changes
+      const terminalWindow = document.getElementById('terminal-window');
+      if (terminalWindow) {
+        const terminalObserver = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && 
+                (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
+              
+              // Check if terminal just became hidden/closed
+              const computedDisplay = window.getComputedStyle(terminalWindow).display;
+              const isTerminalClosed = computedDisplay === 'none' || 
+                                     terminalWindow.classList.contains('hide') ||
+                                     terminalWindow.style.display === 'none';
+              
+              console.log('Terminal visibility changed. Closed:', isTerminalClosed);
+              
+              if (isTerminalClosed && this.hasUsedTerminal && 
+                  document.getElementById('home-page').classList.contains('active')) {
+                console.log('Terminal closed on home page, checking for automata guidance...');
+                setTimeout(() => this.checkForTerminalGuidance(), 500);
+              }
+            }
+          });
+        });
+        
+        terminalObserver.observe(terminalWindow, { 
+          attributes: true, 
+          attributeFilter: ['style', 'class'] 
+        });
+      }
+      
+      // Also track clicks on the terminal link itself
+      const terminalLink = document.querySelector('.terminal-link');
+      if (terminalLink) {
+        terminalLink.addEventListener('click', () => {
+          console.log('Terminal link clicked');
+          
+          // Stop pulsing immediately when clicked for tracking
+          terminalLink.classList.remove('guidance-pulse');
+          
+          if (!this.hasUsedTerminal) {
+            localStorage.setItem('hasUsedTerminal', 'true');
+            this.hasUsedTerminal = true;
+            console.log('Marked terminal as used via link');
+          }
+        });
+      }
+      
+      // Track automata usage - wait for createAutomaton to be available
+      setTimeout(() => {
+        if (typeof createAutomaton === 'function') {
+          const originalCreateAutomaton = createAutomaton;
+          window.createAutomaton = function() {
+            console.log('Automaton created');
+            if (!userGuidance.hasUsedAutomata) {
+              localStorage.setItem('hasUsedAutomata', 'true');
+              userGuidance.hasUsedAutomata = true;
+              console.log('Marked automata as used');
+            }
+            return originalCreateAutomaton.apply(this, arguments);
+          };
+        } else {
+          console.warn('createAutomaton function not found for tracking');
+        }
+      }, 1000); // Wait 1 second for functions to be defined
+      
+      // Also track clicks on the automata link itself
+      const automataLink = document.querySelector('.automata-link');
+      if (automataLink) {
+        automataLink.addEventListener('click', () => {
+          console.log('Automata link clicked');
+          
+          // Stop pulsing immediately when clicked for tracking
+          automataLink.classList.remove('guidance-pulse');
+          
+          if (!this.hasUsedAutomata) {
+            localStorage.setItem('hasUsedAutomata', 'true');
+            this.hasUsedAutomata = true;
+            console.log('Marked automata as used via link');
+          }
+        });
+      }
+    }
+  };
+  
+  // Initialize guidance system
+  userGuidance.init();
 
   // Function to force close all terminal-related windows
   function forceCloseAllTerminalWindows() {
