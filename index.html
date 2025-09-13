@@ -4181,7 +4181,7 @@ You can also interact with the website using some custom commands. To close the 
     function printCellularAutomataHelp() {
       print('automata - Cellular Automaton Control System');
       print('');
-      print('PERFORMANCE LIMIT: Maximum of 3 automata active at once for optimal performance.');
+      print('PERFORMANCE LIMIT: Maximum of 2 automata active at once for optimal performance.');
       print('');
       print('USAGE:');
       print('    automata <SUBCOMMAND> [OPTIONS]');
@@ -4578,7 +4578,7 @@ document.getElementById('help-modal').addEventListener('click', () => {
   },
   automata: {
     short: 'advanced cellular automaton control system',
-    detail: 'Create, modify, and manage dynamic cellular automata with visual patterns. Features three distinct types (worm, flower, moss) with unique behaviors. Supports naming, scoping, real-time modification, and CLI-style flag parsing. Each automaton creates interactive pixel patterns that respond to mouse movement and follow complex algorithmic rules. Also controls interface elements. Performance limit: maximum of 3 automata active at once.',
+    detail: 'Create, modify, and manage dynamic cellular automata with visual patterns. Features three distinct types (worm, flower, moss) with unique behaviors. Supports naming, scoping, real-time modification, and CLI-style flag parsing. Each automaton creates interactive pixel patterns that respond to mouse movement and follow complex algorithmic rules. Also controls interface elements. Performance limit: maximum of 2 automata active at once.',
     examples: [
       'automata create',
       'automata create --type=worm --name="My Worm"',
@@ -7249,12 +7249,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Click launch:', type, 'Current automata count:', automatonInstances.length);
         
         // Check if we've reached the maximum limit
-        if (automatonInstances.length >= 3) {
+        if (automatonInstances.length >= 2) {
           console.log('Reached maximum limit, showing message...');
           
           // Always show a visual notification
           const notification = document.createElement('div');
-          notification.textContent = 'Maximum of 3 automata allowed for optimal performance';
+          notification.textContent = 'Maximum of 2 automata allowed for optimal performance';
           notification.style.cssText = `
             position: fixed;
             top: 50px;
@@ -7283,7 +7283,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 !terminalWindow.classList.contains('hide');
           console.log('Terminal open?', isTerminalOpen);
           if (isTerminalOpen) {
-            print('automata: maximum of 3 automata allowed for optimal performance');
+            print('automata: maximum of 2 automata allowed for optimal performance');
           }
           return;
         }
@@ -7328,10 +7328,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Drop detected with type:', draggedType);
         
         // Check if we've reached the maximum limit
-        if (automatonInstances.length >= 3) {
+        if (automatonInstances.length >= 2) {
           // Always show a visual notification
           const notification = document.createElement('div');
-          notification.textContent = 'Maximum of 3 automata allowed for optimal performance';
+          notification.textContent = 'Maximum of 2 automata allowed for optimal performance';
           notification.style.cssText = `
             position: fixed;
             top: 50px;
@@ -7355,7 +7355,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                  (terminalWindow.style.display === '' && computedDisplay === 'flex')) && 
                                 !terminalWindow.classList.contains('hide');
           if (isTerminalOpen) {
-            print('automata: maximum of 3 automata allowed for optimal performance');
+            print('automata: maximum of 2 automata allowed for optimal performance');
           }
           
           removeDragSeed();
@@ -7470,9 +7470,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function launchAutomaton(type, x = null, y = null, customName = null) {
-    // Check if we've reached the maximum limit of 3 automata
-    if (automatonInstances.length >= 3) {
-      print('automata: maximum of 3 automata allowed for optimal performance');
+    // Check if we've reached the maximum limit of 2 automata
+    if (automatonInstances.length >= 2) {
+      print('automata: maximum of 2 automata allowed for optimal performance');
       return null;
     }
     
