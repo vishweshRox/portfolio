@@ -21,6 +21,12 @@
       font-family: monospace;
       margin: 0; padding: 0;
     }
+    
+    /* Prevent any scroll on home page */
+    body.home-page {
+      overflow: hidden;
+      height: 100vh;
+    }
     body.light-mode {
       background: #ffffff;
     }
@@ -2084,7 +2090,22 @@
       z-index: 10; /* Below everything else */
       display: flex;
       justify-content: center;
-      min-height: 100vh;
+      min-height: calc(100vh - 60px); /* Account for menu height */
+    }
+
+    /* Home page specific styling - no forced height */
+    .website-page#home-page {
+      min-height: auto;
+    }
+
+    /* Home page content should not force height */
+    #home-page .website-content {
+      min-height: auto;
+    }
+
+    /* Other pages should have full height for proper scrolling */
+    .website-page:not(#home-page) {
+      min-height: calc(100vh - 140px); /* Account for menu and padding */
     }
 
     .website-content-container {
@@ -5489,6 +5510,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPage) currentPage.classList.remove('active');
         targetPage.classList.add('active');
         
+        // Add/remove home-page class on body for scroll control
+        if (pageName === 'home') {
+          document.body.classList.add('home-page');
+        } else {
+          document.body.classList.remove('home-page');
+        }
+        
         // Fade back in
         contentContainer.classList.remove('fade-out');
       }, 250); // Half of the transition duration
@@ -5497,6 +5525,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize website navigation
   initializeWebsiteNavigation();
+
+  // Set initial home-page class since home page is active by default
+  document.body.classList.add('home-page');
 
   // Function to force close all terminal-related windows
   function forceCloseAllTerminalWindows() {
@@ -7740,7 +7771,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return { x: 50, y: 50 }; // Fallback coordinates
       }
 
-      // Get the center coordinates of the automaton
+      // For automata with a center property (like FlowerAutomaton), use it directly
+      if (instance.center && instance.cellSize) {
+        const pixelX = instance.center.x * instance.cellSize;
+        const pixelY = instance.center.y * instance.cellSize;
+        return { x: pixelX, y: pixelY };
+      }
+
+      // Get the center coordinates of the automaton from pixels
       if (instance.pixels && Object.keys(instance.pixels).length > 0) {
         const pixelElements = Object.values(instance.pixels).filter(p => p && p.parentNode);
         if (pixelElements.length > 0) {
